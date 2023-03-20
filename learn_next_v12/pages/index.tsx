@@ -8,7 +8,7 @@ import randomID from "../utils/randomID";
 export interface HomePageProps {
   ip: string;
   mess: string;
-  countServer?: number;
+  countServer: number;
 }
 
 const Home = ({ ip, mess, countServer }: HomePageProps) => {
@@ -31,7 +31,7 @@ const Home = ({ ip, mess, countServer }: HomePageProps) => {
   };
 
   useEffect(() => {
-    // If cookies in browser empty equal 0
+    // If cookies in browser empty => equal 0
     if (Object.keys(cookies).length > 0) {
       setCountAccess(Object.keys(cookies).length);
     }
@@ -56,14 +56,15 @@ const Home = ({ ip, mess, countServer }: HomePageProps) => {
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const ip = req.headers["x-real-ip"] || req.connection.remoteAddress; // Get ip
   const cookies = req.headers.cookie; // Get Cookies native
-  // setCookie(randomID(), "value", { req, res, maxAge: 60 * 6 * 24 });
-  console.log("Server", cookies?.split(";").length);
+  setCookie(randomID(), "value", { req, res, maxAge: 60 });
+  var count = Number(cookies?.split("=value").length);
+  console.log("Server", Number(cookies?.split(";").length));
 
   return {
     props: {
       ip,
       mess: "Hello NextJS",
-      // countServer: cookies?.split(";").length ? cookies?.split(";").length : 0,
+      countServer: cookies?.split("=value").length ? count : 1,
     },
   };
 };
