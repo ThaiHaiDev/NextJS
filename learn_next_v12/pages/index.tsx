@@ -1,4 +1,4 @@
-import { getCookies, setCookie } from "cookies-next";
+import { getCookie, getCookies, setCookie } from "cookies-next";
 import type { GetServerSideProps } from "next";
 import { useEffect, useState } from "react";
 
@@ -6,12 +6,11 @@ import styles from "../styles/Home.module.css";
 import randomID from "../utils/randomID";
 
 export interface HomePageProps {
-  ip: string;
   mess: string;
   countServer: number;
 }
 
-const Home = ({ ip, mess, countServer }: HomePageProps) => {
+const Home = ({ mess, countServer }: HomePageProps) => {
   const dateCurrent = new Date();
   const cookies = getCookies(); // Find cookies
   const [countAccess, setCountAccess] = useState<number>(0);
@@ -37,7 +36,7 @@ const Home = ({ ip, mess, countServer }: HomePageProps) => {
     }
   }, [cookies]);
 
-  console.log("Client", countAccess);
+  // console.log("Client", countAccess);
 
   return (
     <div className={styles.container}>
@@ -45,8 +44,6 @@ const Home = ({ ip, mess, countServer }: HomePageProps) => {
         {tempDay} {tempTime}
       </p>
       <h1>{mess}</h1>
-      <h1>{ip}</h1>
-      <h2>{`Lượng truy cập: ${countAccess}`}</h2>
       <h2>{`Lượng truy cập tính ở phía Server: ${countServer}`}</h2>
       <button onClick={handleSetCookie}>Set cookie</button>
     </div>
@@ -54,17 +51,31 @@ const Home = ({ ip, mess, countServer }: HomePageProps) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const ip = req.headers["x-real-ip"] || req.connection.remoteAddress; // Get ip
-  const cookies = req.headers.cookie; // Get Cookies native
-  setCookie(randomID(), "value", { req, res, maxAge: 60 });
-  var count = Number(cookies?.split("=value").length);
-  console.log("Server", Number(cookies?.split(";").length));
+  const dateCurrent = new Date();
+  const timeDefine = 60000; // milliseconds
+  const tempCount = Number(getCookie("count_access", { req, res }));
+  const tempTime = getCookie("time_access", { req, res });
+
+  if (new Date(JSON.parse(tempTime)) <= new Date(Date.now() - timeDefine)) {
+    setCookie("count_access", tempCount + 1, { req, res });
+    setCookie("time_access", JSON.stringify(dateCurrent), {
+      req,
+      res,
+    });
+  } else {
+    console.log("Not Update");
+  }
+
+  // setCookie("time_access", JSON.stringify(dateCurrent), {
+  //   req,
+  //   res,
+  // });
+  // var count = Number(cookies?.split("=value").length);
 
   return {
     props: {
-      ip,
       mess: "Hello NextJS",
-      countServer: cookies?.split("=value").length ? count : 1,
+      countServer: tempCount,
     },
   };
 };
