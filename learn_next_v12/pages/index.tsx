@@ -49,28 +49,23 @@ const Home = ({ mess, countServer }: HomePageProps) => {
     </div>
   );
 };
-
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const dateCurrent = new Date();
   const timeDefine = 60000; // milliseconds
   const tempCount = Number(getCookie("count_access", { req, res }));
   const tempTime = getCookie("time_access", { req, res });
 
-  if (new Date(JSON.parse(tempTime)) <= new Date(Date.now() - timeDefine)) {
-    setCookie("count_access", tempCount + 1, { req, res });
-    setCookie("time_access", JSON.stringify(dateCurrent), {
-      req,
-      res,
-    });
-  } else {
-    console.log("Not Update");
+  if (tempTime !== undefined) {
+    if (new Date(JSON.parse(tempTime)) <= new Date(Date.now() - timeDefine)) {
+      setCookie("count_access", tempCount + 1, { req, res });
+      setCookie("time_access", JSON.stringify(dateCurrent), {
+        req,
+        res,
+      });
+    } else {
+      console.log("Not Update");
+    }
   }
-
-  // setCookie("time_access", JSON.stringify(dateCurrent), {
-  //   req,
-  //   res,
-  // });
-  // var count = Number(cookies?.split("=value").length);
 
   return {
     props: {
